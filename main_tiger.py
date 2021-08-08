@@ -47,7 +47,7 @@ if __name__ == '__main__':
     train_basic(model, train_loader, loss, optimizer, device, args.epochs)
     print('Testing \n-------')
     test_basic(model, test_loader,device)
-    torch.save(model.state_dict(), 'model_0_weights.pkl')
+    torch.save(model.state_dict(), 'model_0_weights_tiger.pkl')
 
     print('Train the advanced model')
     num_T=3
@@ -68,6 +68,6 @@ if __name__ == '__main__':
         print(f'train accuracy for model {t}: {train_acc[t]}')
 
 
-    # model_path = f'model_2_weights.pkl'
+    # model_path = f'model_2_weights_tiger.pkl'
     # print(f'model 0')
     # print_result(test_loader_, device, model_path)
