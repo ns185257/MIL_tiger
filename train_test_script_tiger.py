@@ -4,7 +4,7 @@ import torch.nn as nn
 import itertools
 import numpy as np
 import torch.optim as optim
-from models import MIL
+from models_tiger import MIL
 
 def calculate_classification_error(Y, Y_hat):
     """
@@ -122,7 +122,7 @@ def test_basic(model, test_loader, device):
 
 def init_t_model(v_model, t ):
     classname = v_model.__class__.__name__
-    model_dict = torch.load(f'model_{t}_weights.pkl',
+    model_dict = torch.load(f'models/model_{t}_weights_tiger.pkl',
                             map_location=lambda storage, loc: storage)
     if classname.find('Conv') != -1:
         nn.init.normal_(model_dict.weight, 0.0, 0.02)
@@ -143,19 +143,13 @@ class MIL_Loss(torch.nn.Module):
         y_prob_ops = 1 - y_prob_list
         y_prob_log_ops = torch.log(y_prob_ops)
         loss_sum = 0
-        if y_prob_log.shape == 0:
-            print(1)
+
         for a, a_ops in zip(A,A_ops):
             torch.tensor(a)
             torch.tensor(a_ops)
             if Y == 1:
-                loss_sum += (torch.dot(y_prob_log.squeeze(0), torch.tensor(a).float()) + torch.dot(
-                    y_prob_log_ops.squeeze(0), torch.tensor(a_ops).float())) * \
-                            w_dict[a]
-                # print(f'y_prob_log.squeeze(0) shape {y_prob_log.squeeze(0).shape}')
-                # print(f'torch.tensor(a) shape {torch.tensor(a).shape}')
-                # print(f'torch.tensor(a_ops) shape {torch.tensor(a_ops).shape}')
-                # print(f'w_dict[a] shape {w_dict[a].shape}')
+                loss_sum += (torch.dot(y_prob_log.squeeze(0), torch.tensor(a).float()) +
+                             torch.dot(y_prob_log_ops.squeeze(0), torch.tensor(a_ops).float())) *w_dict[a]
             else:
                 loss_sum += torch.sum(y_prob_log_ops)
         return loss_sum
@@ -185,7 +179,7 @@ def train_advanced(model, train_loader, loss_fn, optimizer, device, epochs):
         train_loss = 0.
         train_acc =0.
         for idx, (x, y, _) in enumerate(train_loader):
-            # print(idx)
+            print(idx)
             y_prob_list = []
             y_hat_list = []
             for X in x[0]:
@@ -216,6 +210,7 @@ def train_advanced(model, train_loader, loss_fn, optimizer, device, epochs):
                 if True in a:
                     print('##########   ERROR    ##########')
                     print(f' bag number {idx}')
+                    break
         train_loss /= len(train_loader)
         train_acc /= len(train_loader)
         train_loss_epoch.append(train_loss)

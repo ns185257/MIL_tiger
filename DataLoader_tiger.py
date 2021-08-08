@@ -28,17 +28,17 @@ class TigerDataset(Dataset):
         bag = self.bags[idx]
         label = self.labels[idx]
         return bag, label, ''
-
-if __name__ == '__main__':
-    csv_file = 'tiger_inst.csv'
-    df = pd.read_csv(csv_file)
-    train_sample_size = 150
-    dataloader = TigerDataset(df)
-    batch_size=1
-    training_sample = random.sample(range(len(dataloader)), train_sample_size)
-    testing_sample = np.setdiff1d(range(len(dataloader)),training_sample)
-    train = [dataloader[i] for i in training_sample]
-    test = [dataloader[i] for i in testing_sample]
-    train_loader = DataLoader(train, batch_size=batch_size, shuffle=True, drop_last=False)
-    test_loader = DataLoader(test, batch_size=batch_size, shuffle=False, drop_last=False)
+#
+# if __name__ == '__main__':
+#     csv_file = 'data/tiger_inst.csv'
+#     df = pd.read_csv(csv_file)
+#     train_sample_size = 150
+#     dataloader = TigerDataset(df)
+#     batch_size=1
+#     training_sample = random.sample(range(len(dataloader)), train_sample_size)
+#     testing_sample = np.setdiff1d(range(len(dataloader)),training_sample)
+#     train = [dataloader[i] for i in training_sample]
+#     test = [dataloader[i] for i in testing_sample]
+#     train_loader = DataLoader(train, batch_size=batch_size, shuffle=True, drop_last=False)
+#     test_loader = DataLoader(test, batch_size=batch_size, shuffle=False, drop_last=False)
 
