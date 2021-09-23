@@ -63,7 +63,7 @@ if __name__ == '__main__':
         loss = MIL_Loss()
         train_loss[t], train_acc[t], model = train_advanced(model, train_loader, loss, optimizer, device, args.epochs)
         torch.save(model.state_dict(), f'models/model_{t}_weights_tiger.pkl')
-        print('\n\n\n\n')
+        print('\n')
 
         print(f'train loss for model {t}: {train_loss[t]}')
         print(f'train accuracy for model {t}: {train_acc[t]}')

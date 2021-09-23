@@ -148,8 +148,12 @@ class MIL_Loss(torch.nn.Module):
             torch.tensor(a)
             torch.tensor(a_ops)
             if Y == 1:
-                loss_sum += (torch.dot(y_prob_log.squeeze(0), torch.tensor(a).float()) +
-                             torch.dot(y_prob_log_ops.squeeze(0), torch.tensor(a_ops).float())) *w_dict[a]
+                if len(y_prob_log) == 1:
+                    loss_sum += (torch.dot(y_prob_log, torch.tensor(a).float()) +
+                                 torch.dot(y_prob_log_ops, torch.tensor(a_ops).float())) * w_dict[a]
+                else:
+                    loss_sum += (torch.dot(y_prob_log.squeeze(0), torch.tensor(a).float()) +
+                                 torch.dot(y_prob_log_ops.squeeze(0), torch.tensor(a_ops).float())) * w_dict[a]
             else:
                 loss_sum += torch.sum(y_prob_log_ops)
         return loss_sum
@@ -168,7 +172,7 @@ def calc_w(y_prob_list):
         w2 = [(1-y_prob) for a_, y_prob in zip(a,y_prob_list) if a_==0]
         w = w1+w2
         w = np.prod([item.item() for item in w])
-        norm = 1 - np.prod([1-y_prob for y_prob in y_prob_list])
+        norm = 1 - np.prod([1-y_prob.detach().numpy() for y_prob in y_prob_list])
         W[(a)] = w/norm
     return W
 
@@ -179,7 +183,6 @@ def train_advanced(model, train_loader, loss_fn, optimizer, device, epochs):
         train_loss = 0.
         train_acc =0.
         for idx, (x, y, _) in enumerate(train_loader):
-            print(idx)
             y_prob_list = []
             y_hat_list = []
             for X in x[0]:
@@ -192,12 +195,6 @@ def train_advanced(model, train_loader, loss_fn, optimizer, device, epochs):
                 y_hat_list.append(Y_hat)
             w_dict = calc_w(y_prob_list)
             optimizer.zero_grad()
-            # print(f'y_prob_log.squeeze(0) shape {x.shape}')
-            # print(f'y shape {y.shape}')
-            # print(f'y prob shape {torch.cat(y_prob_list)}')
-            # print(f'x1 shape {x.shape[1]}')
-            # print(f'w dict {len(w_dict)}')
-            # print(y_prob_list)
             loss = loss_fn(y,torch.cat(y_prob_list), x.shape[1], w_dict)
             train_loss += (loss.item()/x.shape[1])
             loss.backward()
