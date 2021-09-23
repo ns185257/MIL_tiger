@@ -68,7 +68,3 @@ if __name__ == '__main__':
         print(f'train loss for model {t}: {train_loss[t]}')
         print(f'train accuracy for model {t}: {train_acc[t]}')
 
-
-    # model_path = f'models/model_2_weights_tiger.pkl'
-    # print(f'model 0')
-    # print_result(test_loader_, device, model_path)
