@@ -105,7 +105,7 @@ class LSE(nn.Module):
 
 class MIL(nn.Module):
 
-    def __init__(self, aggregation = 'attention'):
+    def __init__(self,num_feature ,aggregation = 'attention'):
         super(MIL, self).__init__()
         L = 500
         D = 128
@@ -118,7 +118,7 @@ class MIL(nn.Module):
         #                                         nn.ReLU(),
         #                                         nn.MaxPool2d(2, stride = 2),)
 
-        self.feature_extractor2 = nn.Sequential(nn.Linear(87, L),
+        self.feature_extractor2 = nn.Sequential(nn.Linear(num_feature, L),
                                                 nn.ReLU())
 
         if aggregation == 'attention':

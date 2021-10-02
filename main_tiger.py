@@ -12,11 +12,10 @@ from torch.utils.data import DataLoader
 import numpy as np
 
 parser = argparse.ArgumentParser(description = 'MIL MNIST-Bags')
-parser.add_argument('--epochs', type=int, default=2, help='number of epochs to train (default: 10)')
+parser.add_argument('--epochs', type=int, default=5, help='number of epochs to train (default: 10)')
 parser.add_argument('--batch_size', type=int, default=1, help='the size of the batch')
 parser.add_argument('--lr', type=float, default=0.0005, help='learning rate (default: 0.0005)')
 parser.add_argument('--reg', type=float, default=10e-5, help='weight decay')
-parser.add_argument('--train_sample_size', type=int, default=150, help='number of bags in training set')
 parser.add_argument('--seed', type=int, default=1, help='random seed (default: 1)')
 parser.add_argument('--model', type=str, default='attention',
                     help = 'type of aggregation : attention, gated_attention, noisy and, noisy or, ISR, generalized mean, LSE')
@@ -28,26 +27,35 @@ loader_kwargs = {'num_workers': 1, 'pin_memory': True} if torch.cuda.is_availabl
 
 if __name__ == '__main__':
     ### Read from csv file and create train and test dataloader
-    csv_file = 'data/tiger_inst.csv'
+    project_name = 'elephant'
+    seed_num = 10 if project_name=='tiger' else 0
+    csv_file = f'data/{project_name}_inst.csv'
     df = pd.read_csv(csv_file)
+    train_sample_size = int(np.ceil(df.bagName.nunique()*0.8))
+    num_feature = len(df.columns)-2
     dataloader = DataLoader_tiger.TigerDataset(df)
 
     print('Train the basic MIL model')
-    model = MIL(args.model)
+    model = MIL(num_feature, args.model)
     loss = torch.nn.BCELoss()
     optimizer = optim.Adam(model.parameters(), lr = args.lr, betas = (0.9, 0.999), weight_decay = args.reg)
-    training_sample = random.sample(range(len(dataloader)), args.train_sample_size)
+    training_sample = random.sample(range(len(dataloader)),train_sample_size)
     testing_sample = np.setdiff1d(range(len(dataloader)),training_sample)
     train = [dataloader[i] for i in training_sample]
     test = [dataloader[i] for i in testing_sample]
-    train_loader = DataLoader(train, batch_size=args.batch_size, shuffle=True, drop_last=False)
-    test_loader = DataLoader(test, batch_size=args.batch_size, shuffle=False, drop_last=False)
+    if project_name in ['tiger', 'elephant']:
+        train_loader = DataLoader(train, batch_size=args.batch_size, shuffle=True, drop_last=False, worker_init_fn=np.random.seed(seed_num))
+        test_loader = DataLoader(test, batch_size=args.batch_size, shuffle=False, drop_last=False, worker_init_fn=np.random.seed(seed_num))
+
+    else:
+        train_loader = DataLoader(train, batch_size=args.batch_size, shuffle=True, drop_last=False)
+        test_loader = DataLoader(test, batch_size=args.batch_size, shuffle=False, drop_last=False)
 
     print('Training \n--------')
     train_basic(model, train_loader, loss, optimizer, device, args.epochs)
     print('Testing \n-------')
     test_basic(model, test_loader,device)
-    torch.save(model.state_dict(), 'models/model_0_weights_tiger.pkl')
+    torch.save(model.state_dict(), f'models/model_0_weights_{project_name}.pkl')
 
     print('Train the advanced model')
     num_T=3
@@ -57,12 +65,12 @@ if __name__ == '__main__':
 
     for t in range(1, num_T):
         print(f'the model is num {t}')
-        model = MIL(args.model)
-        model = init_t_model(model, t - 1)
+        model = MIL(num_feature, args.model)
+        model = init_t_model(model, t - 1, project_name)
         optimizer = optim.Adam(model.parameters(), lr=0.0005, betas=(0.9, 0.999))
         loss = MIL_Loss()
         train_loss[t], train_acc[t], model = train_advanced(model, train_loader, loss, optimizer, device, args.epochs)
-        torch.save(model.state_dict(), f'models/model_{t}_weights_tiger.pkl')
+        torch.save(model.state_dict(), f'models/model_{t}_weights_{project_name}.pkl')
         print('\n')
 
         print(f'train loss for model {t}: {train_loss[t]}')

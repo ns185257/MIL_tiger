@@ -120,9 +120,9 @@ def test_basic(model, test_loader, device):
 
     print('Error = {:.4f},  Accuracy = {:.4f}'.format( test_error,test_acc))
 
-def init_t_model(v_model, t ):
+def init_t_model(v_model, t, project_name):
     classname = v_model.__class__.__name__
-    model_dict = torch.load(f'models/model_{t}_weights_tiger.pkl',
+    model_dict = torch.load(f'models/model_{t}_weights_{project_name}.pkl',
                             map_location=lambda storage, loc: storage)
     if classname.find('Conv') != -1:
         nn.init.normal_(model_dict.weight, 0.0, 0.02)
@@ -198,7 +198,7 @@ def train_advanced(model, train_loader, loss_fn, optimizer, device, epochs):
             loss = loss_fn(y,torch.cat(y_prob_list), x.shape[1], w_dict)
             train_loss += (loss.item()/x.shape[1])
             loss.backward()
-            nn.utils.clip_grad_norm_(model.parameters(), 0)
+            nn.utils.clip_grad_norm_(model.parameters(), 0.0)
             optimizer.step()
             Y_hat_bag = 1 if 1 in y_hat_list else -1
             train_acc += 1 if Y_hat_bag==y.float().item() else 0

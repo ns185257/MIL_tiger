@@ -10,7 +10,6 @@ class TigerDataset(Dataset):
         self.bags, self.labels = self.form_to_bag(df)
 
     def form_to_bag(self, df):
-        # data_loader = pd.read_csv(csv_file)
         bags = []
         bag_labels = []
         for bag_num in df.bagName.unique():
